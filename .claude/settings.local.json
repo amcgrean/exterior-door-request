@@ -14,7 +14,20 @@
       "Bash(git config --global user.email)",
       "Bash(git init)",
       "Bash(git add -A)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(vercel --version)",
+      "Bash(npm install -g vercel)",
+      "Bash(git remote add origin https://github.com/amcgrean/exterior-door-request.git)",
+      "Bash(git branch -M main)",
+      "Bash(git push -u origin main)",
+      "Bash(git push -u origin main --force)",
+      "mcp__b34eca0d-6915-4b65-afa1-22b0eda69e26__deploy_to_vercel",
+      "Bash(vercel whoami)",
+      "Bash(git add .github/workflows/deploy.yml .claude/launch.json)",
+      "Bash(git push origin main)",
+      "mcp__b34eca0d-6915-4b65-afa1-22b0eda69e26__search_vercel_documentation",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm --version)"
     ]
   }
 }
