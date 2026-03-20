@@ -81,6 +81,7 @@ export const customerInfoQuestions: Question[] = [
     type: "single",
     allowCustom: true,
     customLabel: "Yes — Contractor name",
+    showIf: (answers) => answers["q_installation"] !== "yes",
     options: [
       {
         label: "No Contractor",

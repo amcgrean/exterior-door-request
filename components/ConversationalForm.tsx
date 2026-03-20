@@ -12,6 +12,7 @@ function getVisibleQuestions(answers: Answers): Question[] {
   return allQuestions.filter((q) => (q.showIf ? q.showIf(answers) : true));
 }
 
+// ─── OptionCard ──────────────────────────────────────────────────────────────
 function OptionCard({
   option,
   selected,
@@ -26,16 +27,16 @@ function OptionCard({
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className={`relative flex w-full cursor-pointer flex-col items-start gap-2 rounded-xl border p-3 text-left transition-all duration-200 ${
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
+      className={`relative flex w-full cursor-pointer flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all duration-150 ${
         selected
-          ? "border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/20"
-          : "border-zinc-700 bg-zinc-900 hover:border-zinc-500 hover:bg-zinc-800"
+          ? "border-amber-500 bg-amber-50 shadow-sm shadow-amber-100"
+          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
       }`}
     >
       {option.image && !imgError && (
-        <div className="h-28 w-full overflow-hidden rounded-lg bg-zinc-800">
+        <div className="h-24 w-full overflow-hidden rounded-lg bg-slate-100">
           <img
             src={option.image}
             alt={option.label}
@@ -44,40 +45,46 @@ function OptionCard({
           />
         </div>
       )}
-      <div className="flex w-full items-center gap-2">
+      <div className="flex w-full items-center gap-3">
         <div
-          className={`flex h-4 w-4 flex-shrink-0 rounded-full border-2 transition-all ${
-            selected ? "border-amber-500 bg-amber-500" : "border-zinc-600"
+          className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+            selected ? "border-amber-500 bg-amber-500" : "border-slate-300 bg-white"
           }`}
         >
           {selected && (
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="h-full w-full rounded-full bg-amber-500"
+              className="h-2 w-2 rounded-full bg-white"
             />
           )}
         </div>
         {option.colorHex && (
           <span
-            className="h-4 w-4 rounded-full border border-white/20"
+            className="h-5 w-5 flex-shrink-0 rounded-full border border-slate-200 shadow-sm"
             style={{ backgroundColor: option.colorHex }}
             aria-hidden="true"
           />
         )}
-        <span className={`text-sm font-medium ${selected ? "text-amber-400" : "text-zinc-200"}`}>
+        <span className={`text-sm font-semibold ${selected ? "text-amber-800" : "text-slate-800"}`}>
           {option.label}
         </span>
       </div>
-      {option.description && <p className="pl-6 text-xs text-zinc-400">{option.description}</p>}
+      {option.description && (
+        <p className={`pl-8 text-xs ${selected ? "text-amber-600" : "text-slate-500"}`}>
+          {option.description}
+        </p>
+      )}
     </motion.button>
   );
 }
 
+// ─── QuestionBlock ────────────────────────────────────────────────────────────
 function QuestionBlock({
   question,
   answer,
   onChange,
+  onSelect,
   onNext,
   isActive,
   questionNumber,
@@ -86,6 +93,7 @@ function QuestionBlock({
   question: Question;
   answer: string | string[];
   onChange: (val: string | string[]) => void;
+  onSelect: (val: string) => void;
   onNext: () => void;
   isActive: boolean;
   questionNumber: number;
@@ -104,8 +112,9 @@ function QuestionBlock({
   const strAnswer = Array.isArray(answer) ? answer[0] ?? "" : answer ?? "";
   const isCustomSelected = strAnswer.startsWith("__custom__:");
   const currentCustom = isCustomSelected ? strAnswer.replace("__custom__:", "") : "";
+
   const sharedInputClassName =
-    "w-full flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white placeholder-zinc-500 transition-colors focus:border-amber-500 focus:outline-none";
+    "w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 transition-colors focus:border-amber-500 focus:outline-none focus:ring-0";
 
   const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,41 +123,36 @@ function QuestionBlock({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="mb-8"
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="mb-6"
     >
-      <div className="mb-4 flex items-start gap-3">
-        <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-black">
-          B
+      {/* Question bubble */}
+      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="mb-3 flex items-center gap-2">
+          <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-xs font-bold text-white">
+            {questionNumber} / {totalQuestions}
+          </span>
         </div>
-        <div className="max-w-2xl flex-1">
-          <div className="rounded-2xl rounded-tl-sm border border-zinc-700 bg-zinc-900 px-5 py-4">
-            <div className="mb-1 flex items-center gap-2">
-              <span className="font-mono text-xs text-zinc-500">
-                {questionNumber} of {totalQuestions}
-              </span>
-            </div>
-            <p className="text-lg font-semibold leading-snug text-white">{question.text}</p>
-            {question.subtext && <p className="mt-1 text-sm text-zinc-400">{question.subtext}</p>}
-
-            {question.image && !imgError && (
-              <div className="mt-3 h-40 overflow-hidden rounded-xl border border-zinc-700">
-                <img
-                  src={question.image}
-                  alt="Question reference"
-                  className="h-full w-full object-cover"
-                  onError={() => setImgError(true)}
-                />
-              </div>
-            )}
+        <p className="text-lg font-semibold leading-snug text-slate-900">{question.text}</p>
+        {question.subtext && (
+          <p className="mt-1.5 text-sm text-slate-500">{question.subtext}</p>
+        )}
+        {question.image && !imgError && (
+          <div className="mt-3 overflow-hidden rounded-xl border border-slate-200">
+            <img
+              src={question.image}
+              alt="Question reference"
+              className="w-full object-cover"
+              onError={() => setImgError(true)}
+            />
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="pl-11">
+      {/* Answer area */}
+      <div>
         {question.type === "text" && (
           <form onSubmit={handleTextSubmit} className="flex flex-col gap-2 sm:flex-row sm:items-start">
             {question.multiline ? (
@@ -156,8 +160,9 @@ function QuestionBlock({
                 ref={inputRef as React.RefObject<HTMLTextAreaElement>}
                 value={strAnswer}
                 onChange={(e) => onChange(e.target.value)}
-                placeholder={question.placeholder ?? "Type your answer..."}
-                className={`${sharedInputClassName} min-h-32 resize-y`}
+                placeholder={question.placeholder ?? "Type your answer…"}
+                rows={4}
+                className={`${sharedInputClassName} min-h-28 resize-y`}
               />
             ) : (
               <input
@@ -165,14 +170,14 @@ function QuestionBlock({
                 type="text"
                 value={strAnswer}
                 onChange={(e) => onChange(e.target.value)}
-                placeholder={question.placeholder ?? "Type your answer..."}
+                placeholder={question.placeholder ?? "Type your answer…"}
                 className={sharedInputClassName}
               />
             )}
             <button
               type="submit"
               disabled={!strAnswer.trim()}
-              className="rounded-xl bg-amber-500 px-5 py-3 font-semibold text-black transition-colors hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-xl bg-amber-500 px-6 py-3 font-semibold text-white shadow-sm transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next →
             </button>
@@ -181,7 +186,7 @@ function QuestionBlock({
 
         {(question.type === "single" || question.type === "yesno") && (
           <div
-            className={`grid gap-2 ${
+            className={`grid gap-2.5 ${
               question.options && question.options.length <= 2
                 ? "grid-cols-1 sm:grid-cols-2"
                 : question.options && question.options.some((o) => o.image)
@@ -194,31 +199,36 @@ function QuestionBlock({
                 key={opt.value}
                 option={opt}
                 selected={strAnswer === opt.value}
-                onClick={() => {
-                  onChange(opt.value);
-                  setTimeout(onNext, 350);
-                }}
+                onClick={() => onSelect(opt.value)}
               />
             ))}
 
             {question.allowCustom && (
               <div
-                className={`rounded-xl border p-3 transition-all duration-200 ${
+                className={`rounded-xl border-2 p-4 transition-all duration-150 ${
                   isCustomSelected
-                    ? "border-amber-500 bg-amber-500/10"
-                    : "border-zinc-700 bg-zinc-900 hover:border-zinc-500"
+                    ? "border-amber-500 bg-amber-50"
+                    : "border-slate-200 bg-white hover:border-slate-300"
                 }`}
               >
                 <div
-                  className="mb-2 flex cursor-pointer items-center gap-2"
-                  onClick={() => onChange(`__custom__:${customValue}`)}
+                  className="mb-3 flex cursor-pointer items-center gap-3"
+                  onClick={() => {
+                    if (customValue.trim()) {
+                      onSelect(`__custom__:${customValue}`);
+                    } else {
+                      onChange(`__custom__:${customValue}`);
+                    }
+                  }}
                 >
                   <div
-                    className={`h-4 w-4 flex-shrink-0 rounded-full border-2 ${
-                      isCustomSelected ? "border-amber-500 bg-amber-500" : "border-zinc-600"
+                    className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 ${
+                      isCustomSelected ? "border-amber-500 bg-amber-500" : "border-slate-300 bg-white"
                     }`}
-                  />
-                  <span className={`text-sm font-medium ${isCustomSelected ? "text-amber-400" : "text-zinc-300"}`}>
+                  >
+                    {isCustomSelected && <div className="h-2 w-2 rounded-full bg-white" />}
+                  </div>
+                  <span className={`text-sm font-semibold ${isCustomSelected ? "text-amber-800" : "text-slate-700"}`}>
                     {question.customLabel ?? "Custom / Other"}
                   </span>
                 </div>
@@ -229,13 +239,13 @@ function QuestionBlock({
                     setCustomValue(e.target.value);
                     onChange(`__custom__:${e.target.value}`);
                   }}
-                  placeholder="Enter custom value..."
-                  className="w-full rounded-lg border border-zinc-600 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 transition-colors focus:border-amber-500 focus:outline-none"
+                  placeholder="Enter custom value…"
+                  className="w-full rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-amber-500 focus:outline-none"
                 />
                 {isCustomSelected && currentCustom && (
                   <button
-                    onClick={onNext}
-                    className="mt-2 w-full rounded-lg bg-amber-500 py-2 text-sm font-semibold text-black transition-colors hover:bg-amber-400"
+                    onClick={() => onSelect(`__custom__:${currentCustom}`)}
+                    className="mt-2.5 w-full rounded-lg bg-amber-500 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600"
                   >
                     Confirm →
                   </button>
@@ -249,17 +259,18 @@ function QuestionBlock({
   );
 }
 
+// ─── Summary ──────────────────────────────────────────────────────────────────
 function Summary({
   answers,
   visibleQuestions,
-  onEdit,
+  onEditAll,
   onSubmit,
   isSubmitting,
   submitted,
 }: {
   answers: Answers;
   visibleQuestions: Question[];
-  onEdit: (id: string) => void;
+  onEditAll: () => void;
   onSubmit: () => void;
   isSubmitting: boolean;
   submitted: boolean;
@@ -271,67 +282,79 @@ function Summary({
     return opt ? opt.label : val || "—";
   };
 
-  return (
-    <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-2xl">
-      <div className="mb-6 rounded-2xl border border-zinc-700 bg-zinc-900 p-6">
-        <h2 className="mb-1 text-2xl font-bold text-white">Review your answers</h2>
-        <p className="mb-6 text-sm text-zinc-400">
-          Everything look right? You can edit any answer before submitting.
-        </p>
-        <div className="space-y-3">
-          {visibleQuestions.map((q) => {
-            const ans = answers[q.id];
-            if (!ans && q.type !== "text") return null;
-            return (
-              <div
-                key={q.id}
-                className="flex items-start justify-between gap-4 border-b border-zinc-800 py-3 last:border-0"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="mb-0.5 text-xs text-zinc-500">{q.text}</p>
-                  <p className="truncate text-sm font-medium text-white">{formatAnswer(q, ans ?? "")}</p>
-                </div>
-                <button
-                  onClick={() => onEdit(q.id)}
-                  className="mt-1 flex-shrink-0 text-xs text-amber-500 hover:text-amber-400"
-                >
-                  Edit
-                </button>
-              </div>
-            );
-          })}
+  if (submitted) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="mx-auto max-w-lg rounded-2xl border border-emerald-200 bg-emerald-50 p-10 text-center shadow-sm"
+      >
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+          <svg className="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
         </div>
+        <h3 className="mb-2 text-2xl font-bold text-slate-900">Quote Request Sent!</h3>
+        <p className="text-slate-600">
+          We&apos;ve received your door specifications. Our team will be in touch with you shortly.
+        </p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-2xl">
+      {/* Header row */}
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Review Your Request</h2>
+          <p className="mt-1 text-sm text-slate-500">Confirm everything looks right before submitting.</p>
+        </div>
+        <button
+          onClick={onEditAll}
+          className="flex items-center gap-1.5 rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edit Answers
+        </button>
       </div>
 
-      {submitted ? (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="py-12 text-center"
-        >
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20">
-            <svg className="h-8 w-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h3 className="mb-2 text-2xl font-bold text-white">Quote Request Sent!</h3>
-          <p className="text-zinc-400">
-            We&apos;ve received your door specifications. Our team will be in touch soon.
-          </p>
-        </motion.div>
-      ) : (
-        <button
-          onClick={onSubmit}
-          disabled={isSubmitting}
-          className="w-full rounded-xl bg-amber-500 py-4 text-lg font-bold text-black transition-colors hover:bg-amber-400 disabled:opacity-50"
-        >
-          {isSubmitting ? "Sending..." : "Submit Quote Request →"}
-        </button>
-      )}
+      {/* Answers table */}
+      <div className="mb-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        {visibleQuestions.map((q, i) => {
+          const ans = answers[q.id];
+          if (!ans && q.type !== "text") return null;
+          return (
+            <div
+              key={q.id}
+              className={`flex items-start gap-4 px-5 py-4 ${
+                i < visibleQuestions.length - 1 ? "border-b border-slate-100" : ""
+              }`}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="mb-0.5 text-xs font-medium text-slate-400 uppercase tracking-wide">{q.text}</p>
+                <p className="text-sm font-semibold text-slate-900">{formatAnswer(q, ans ?? "")}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Submit */}
+      <button
+        onClick={onSubmit}
+        disabled={isSubmitting}
+        className="w-full rounded-xl bg-amber-500 py-4 text-base font-bold text-white shadow-sm transition-colors hover:bg-amber-600 disabled:opacity-50"
+      >
+        {isSubmitting ? "Sending…" : "Submit Quote Request →"}
+      </button>
     </motion.div>
   );
 }
 
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function ConversationalForm() {
   const [answers, setAnswers] = useState<Answers>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -364,6 +387,21 @@ export default function ConversationalForm() {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
+  // KEY FIX: Computes new answers synchronously so navigation uses fresh state,
+  // not the stale closure captured before the React re-render.
+  const handleSelect = (questionId: string, value: string, idx: number) => {
+    const newAnswers = { ...answers, [questionId]: value };
+    setAnswers(newAnswers);
+    setTimeout(() => {
+      const nextVisible = getVisibleQuestions(newAnswers);
+      if (idx < nextVisible.length - 1) {
+        setCurrentIndex(idx + 1);
+      } else {
+        setShowSummary(true);
+      }
+    }, 300);
+  };
+
   const handleNext = (idx: number) => {
     const nextVisible = getVisibleQuestions(answers);
     if (idx < nextVisible.length - 1) {
@@ -373,12 +411,9 @@ export default function ConversationalForm() {
     }
   };
 
-  const handleEdit = (questionId: string) => {
-    const idx = visibleQuestions.findIndex((q) => q.id === questionId);
-    if (idx !== -1) {
-      setCurrentIndex(idx);
-      setShowSummary(false);
-    }
+  const handleEditAll = () => {
+    setCurrentIndex(0);
+    setShowSummary(false);
   };
 
   const handleSubmit = async () => {
@@ -413,69 +448,92 @@ export default function ConversationalForm() {
     }
   };
 
+  // ─── Summary / Slab view ──────────────────────────────────────────────────
   if (showSummary) {
     return (
-      <div className="min-h-screen bg-[#0f0f0f] px-4 py-12">
-        <div className="mx-auto mb-8 max-w-2xl">
-          <div className="mb-2 flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-black">B</div>
-            <span className="text-xl font-bold text-white">Beisser Lumber</span>
+      <div className="min-h-screen bg-slate-50">
+        {/* Header */}
+        <header className="border-b border-slate-200 bg-white shadow-sm">
+          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500 text-sm font-black text-white shadow-sm">
+              BL
+            </div>
+            <div>
+              <p className="text-sm font-bold leading-none text-slate-900">Beisser Lumber</p>
+              <p className="text-xs text-slate-500">Door Quote Request</p>
+            </div>
           </div>
-          <div className="mt-4 h-1.5 w-full rounded-full bg-zinc-800">
-            <div className="h-1.5 rounded-full bg-amber-500 transition-all duration-500" style={{ width: "100%" }} />
-          </div>
-        </div>
-        {isSlabOnly ? (
-          <SlabOnlySpecForm
-            onBack={() => {
-              setShowSummary(false);
-              handleEdit("q1_unitType");
-            }}
-          />
-        ) : (
-          <Summary
-            answers={answers}
-            visibleQuestions={visibleQuestions}
-            onEdit={handleEdit}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            submitted={submitted}
-          />
-        )}
+        </header>
+
+        <main className="mx-auto max-w-3xl px-4 py-10">
+          {isSlabOnly ? (
+            <SlabOnlySpecForm
+              onBack={() => {
+                setShowSummary(false);
+                setCurrentIndex(
+                  Math.max(
+                    0,
+                    allQuestions.findIndex((q) => q.id === "q1_unitType")
+                  )
+                );
+              }}
+              initialCustomerInfo={{
+                full_name: (answers["customerName"] as string) || "",
+                phone_number: (answers["phone"] as string) || "",
+              }}
+            />
+          ) : (
+            <Summary
+              answers={answers}
+              visibleQuestions={visibleQuestions}
+              onEditAll={handleEditAll}
+              onSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+              submitted={submitted}
+            />
+          )}
+        </main>
       </div>
     );
   }
 
+  // ─── Conversational Q&A view ──────────────────────────────────────────────
   const displayedQuestions = visibleQuestions.slice(0, currentIndex + 1);
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] px-4 py-8">
-      <div className="sticky top-0 z-10 mx-auto mb-8 max-w-2xl bg-[#0f0f0f] pb-4 pt-2">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-black">
-              B
+    <div className="min-h-screen bg-slate-50">
+      {/* Sticky header + progress */}
+      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm">
+        <div className="mx-auto max-w-3xl px-4 py-3">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500 text-sm font-black text-white shadow-sm">
+                BL
+              </div>
+              <div>
+                <p className="text-sm font-bold leading-none text-slate-900">Beisser Lumber</p>
+                <p className="text-xs text-slate-500">Door Quote Request</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-bold leading-none text-white">Beisser Lumber</p>
-              <p className="text-xs text-zinc-400">Door Quote Assistant</p>
-            </div>
+            <span className="text-xs font-medium text-slate-500">
+              {answeredCount} of {visibleQuestions.length} answered
+            </span>
           </div>
-          <span className="font-mono text-xs text-zinc-500">
-            {answeredCount}/{visibleQuestions.length} answered
-          </span>
+          <div className="flex items-center gap-2">
+            <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
+              <motion.div
+                className="absolute left-0 top-0 h-full rounded-full bg-amber-500"
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              />
+            </div>
+            <span className="text-xs font-semibold tabular-nums text-amber-600">{progress}%</span>
+          </div>
         </div>
+      </header>
 
-        <div className="h-1 w-full rounded-full bg-zinc-800">
-          <motion.div
-            className="h-1 rounded-full bg-amber-500"
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5 }}
-          />
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-2xl">
+      {/* Questions */}
+      <main className="mx-auto max-w-3xl px-4 py-8">
         <AnimatePresence mode="popLayout">
           {displayedQuestions.map((q, idx) => (
             <QuestionBlock
@@ -483,6 +541,7 @@ export default function ConversationalForm() {
               question={q}
               answer={answers[q.id] ?? ""}
               onChange={(val) => handleAnswer(q.id, val)}
+              onSelect={(val) => handleSelect(q.id, val, idx)}
               onNext={() => handleNext(idx)}
               isActive={idx === currentIndex}
               questionNumber={idx + 1}
@@ -491,23 +550,27 @@ export default function ConversationalForm() {
           ))}
         </AnimatePresence>
 
-        <div ref={bottomRef} className="h-32" />
+        <div ref={bottomRef} className="h-28" />
 
-        {answeredCount > 0 && answeredCount === visibleQuestions.length && !showSummary && !isSlabOnly && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-6 left-1/2 z-20 -translate-x-1/2"
-          >
-            <button
-              onClick={() => setShowSummary(true)}
-              className="rounded-full bg-amber-500 px-8 py-4 font-bold text-black shadow-xl shadow-amber-500/30 transition-colors hover:bg-amber-400"
+        {/* "Review & Submit" sticky button — prehung only, all answered */}
+        {answeredCount > 0 &&
+          answeredCount === visibleQuestions.length &&
+          !showSummary &&
+          !isSlabOnly && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="fixed bottom-6 left-1/2 z-20 -translate-x-1/2"
             >
-              Review & Submit →
-            </button>
-          </motion.div>
-        )}
-      </div>
+              <button
+                onClick={() => setShowSummary(true)}
+                className="rounded-full bg-amber-500 px-8 py-4 font-bold text-white shadow-xl shadow-amber-200 transition-colors hover:bg-amber-600"
+              >
+                Review &amp; Submit →
+              </button>
+            </motion.div>
+          )}
+      </main>
     </div>
   );
 }
