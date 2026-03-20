@@ -95,7 +95,7 @@ export const doorQuestions: Question[] = [
   {
     id: "q1_unitType",
     text: "Do you need a prehung unit or slab only?",
-    subtext: "Slab-only requests will be sent to our alternate form for now.",
+    subtext: "Slab-only requests now open the custom slab spec workflow in this form.",
     type: "single",
     options: [
       {
@@ -106,7 +106,7 @@ export const doorQuestions: Question[] = [
       {
         label: "Slab Only",
         value: "slab",
-        description: "Door slab only — we'll route you to the slab-only form",
+        description: "Door slab only — use the in-app custom slab spec workflow",
       },
     ],
   },
