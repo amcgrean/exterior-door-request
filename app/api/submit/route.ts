@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const TO_EMAIL = process.env.TO_EMAIL ?? "doors@beisser.cloud";
 const FROM_EMAIL = process.env.FROM_EMAIL ?? "noreply@beisser.cloud";
+
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("Missing RESEND_API_KEY environment variable");
+  }
+
+  return new Resend(apiKey);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -92,6 +100,8 @@ export async function POST(req: NextRequest) {
       Object.entries(answers)
         .map(([q, a]) => `${q}\n  → ${a || "—"}`)
         .join("\n\n");
+
+    const resend = getResendClient();
 
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
