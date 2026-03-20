@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { customerInfoQuestions, doorQuestions, Option, Question } from "@/lib/questions";
+import SlabOnlySpecForm from "@/components/SlabOnlySpecForm";
 
 type Answers = Record<string, string | string[]>;
 
 const allQuestions = [...customerInfoQuestions, ...doorQuestions];
-const SLAB_ONLY_FORM_URL = "https://www.beisserlumber.com/service-request";
-
 function getVisibleQuestions(answers: Answers): Question[] {
   return allQuestions.filter((q) => (q.showIf ? q.showIf(answers) : true));
 }
@@ -333,39 +332,6 @@ function Summary({
   );
 }
 
-function SlabOnlyNotice({ onEdit }: { onEdit: (id: string) => void }) {
-  return (
-    <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-2xl">
-      <div className="rounded-2xl border border-zinc-700 bg-zinc-900 p-6">
-        <span className="inline-flex rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
-          Slab-only request
-        </span>
-        <h2 className="mt-4 text-2xl font-bold text-white">Use our slab-only request form.</h2>
-        <p className="mt-3 text-zinc-300">
-          For now, slab-only requests are being handled through a separate form. Use the link below to continue,
-          or go back and switch to a prehung unit if that&apos;s what you need.
-        </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <a
-            href={SLAB_ONLY_FORM_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center justify-center rounded-xl bg-amber-500 px-5 py-3 font-semibold text-black transition-colors hover:bg-amber-400"
-          >
-            Open slab-only form ↗
-          </a>
-          <button
-            onClick={() => onEdit("q1_unitType")}
-            className="inline-flex items-center justify-center rounded-xl border border-zinc-600 px-5 py-3 font-semibold text-white transition-colors hover:border-zinc-400 hover:bg-zinc-800"
-          >
-            Change selection
-          </button>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 export default function ConversationalForm() {
   const [answers, setAnswers] = useState<Answers>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -460,7 +426,12 @@ export default function ConversationalForm() {
           </div>
         </div>
         {isSlabOnly ? (
-          <SlabOnlyNotice onEdit={handleEdit} />
+          <SlabOnlySpecForm
+            onBack={() => {
+              setShowSummary(false);
+              handleEdit("q1_unitType");
+            }}
+          />
         ) : (
           <Summary
             answers={answers}
